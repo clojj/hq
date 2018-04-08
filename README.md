@@ -6,5 +6,5 @@
 Infos
 =====
 
-http://www.aosabook.org/en/posa/warp.html
-http://websocket.org/quantum.html
+* http://www.aosabook.org/en/posa/warp.html
+* http://websocket.org/quantum.html
