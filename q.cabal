@@ -27,8 +27,13 @@ executable q-exe
   build-depends:       base
                      , q
                      , containers
+                     , warp
+                     , wai
+                     , wai-app-static
+                     , wai-websockets
                      , websockets
                      , text
+                     , file-embed
   default-language:    Haskell2010
 
 test-suite q-test

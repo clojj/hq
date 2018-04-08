@@ -1,2 +1,4 @@
 .stack-work/
 *.log
+static/elm-stuff/
+static/main.js
