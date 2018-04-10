@@ -2,22 +2,39 @@
 {-# LANGUAGE TemplateHaskell   #-}
 module Main
 where
-import           Control.Concurrent             (MVar, modifyMVar, modifyMVar_,
-                                                 newMVar, readMVar)
-import           Control.Exception              (finally)
-import           Control.Monad                  (forM_, forever)
-import           Data.Char                      (isPunctuation, isSpace)
-import           Data.Monoid                    (mappend, (<>))
-import           Data.Text                      (Text)
-import qualified Data.Text                      as T
-import qualified Data.Text.IO                   as T
+import           Control.Concurrent             ( MVar
+                                                , modifyMVar
+                                                , modifyMVar_
+                                                , newMVar
+                                                , readMVar
+                                                )
+import           Control.Exception              ( finally )
+import           Control.Monad                  ( forM_
+                                                , forever
+                                                )
+import           Data.Char                      ( isPunctuation
+                                                , isSpace
+                                                )
+import           Data.Monoid                    ( mappend
+                                                , (<>)
+                                                )
+import           Data.Text                      ( Text
+                                                , stripPrefix
+                                                )
+import qualified Data.Text                     as T
+import qualified Data.Text.IO                  as T
 
-import           Data.FileEmbed                 (embedDir)
+import           Data.FileEmbed                 ( embedDir )
 import qualified Network.Wai
-import qualified Network.Wai.Application.Static as Static
-import qualified Network.Wai.Handler.Warp       as Warp
-import qualified Network.Wai.Handler.WebSockets as WaiWS
-import qualified Network.WebSockets             as WS
+import qualified Network.Wai.Application.Static
+                                               as Static
+import qualified Network.Wai.Handler.Warp      as Warp
+import qualified Network.Wai.Handler.WebSockets
+                                               as WaiWS
+import qualified Network.WebSockets            as WS
+
+import qualified Data.ByteString.Lazy          as LBS
+import           Data.Text.Encoding             ( decodeUtf8 )
 
 type Client = (Text, WS.Connection)
 
@@ -48,9 +65,10 @@ main :: IO ()
 main = do
     putStrLn "http://localhost:9160/index.html"
     state <- newMVar newServerState
-    Warp.runSettings
-      (Warp.setPort 9160 Warp.defaultSettings)
-      $ WaiWS.websocketsOr WS.defaultConnectionOptions (application state) staticApp
+    Warp.runSettings (Warp.setPort 9160 Warp.defaultSettings)
+        $ WaiWS.websocketsOr WS.defaultConnectionOptions
+                             (application state)
+                             staticApp
 
 staticApp :: Network.Wai.Application
 staticApp = Static.staticApp $ Static.embeddedSettings $(embedDir "static")
@@ -65,16 +83,25 @@ application state pending = do
         _
             | not (prefix `T.isPrefixOf` msg)
             -> WS.sendTextData conn ("Wrong announcement" :: Text)
-            | any ($ fst client) [T.null, T.any isPunctuation, T.any isSpace]
+            |
+    --
+    --
+              any ($ fst client) [T.null, T.any isPunctuation, T.any isSpace]
             -> WS.sendTextData
                 conn
                 ("Name cannot "
                 `mappend` "contain punctuation or whitespace, and "
                 `mappend` "cannot be empty" :: Text
                 )
-            | clientExists client clients
+            |
+    --
+    --
+              clientExists client clients
             -> WS.sendTextData conn ("User already exists" :: Text)
-            | otherwise
+            |
+    --
+    --
+              otherwise
             -> flip finally disconnect $ do
                 modifyMVar_ state $ \s -> do
                     let s' = addClient client s
@@ -84,6 +111,8 @@ application state pending = do
                     broadcast (fst client `mappend` " joined") s'
                     return s'
                 talk conn state client
+--
+--
           where
             prefix     = "JOIN "
             client     = (T.drop (T.length prefix) msg, conn)
@@ -96,7 +125,11 @@ application state pending = do
 talk :: WS.Connection -> MVar ServerState -> Client -> IO ()
 talk conn state (user, _) = forever $ do
     msg <- WS.receiveData conn
-    let [ key, value ] = T.splitOn ":" msg
-        logMsg = " KEY = " <> key <> " VALUE = " <> value
-        in
-        readMVar state >>= broadcast (user <> ": " <> msg <> logMsg)
+    readMVar state >>= broadcast (user <> ": " <> msg)
+        -- let [ key, value ] = T.splitOn ":" msg
+        --     logMsg = " KEY = " <> key <> " VALUE = " <> value
+        --     in
+        --     readMVar state >>= broadcast (user <> ": " <> msg <> logMsg)
+
+parseJoin :: LBS.ByteString -> Maybe Text
+parseJoin = stripPrefix "JOIN " . decodeUtf8 . LBS.toStrict
