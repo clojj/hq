@@ -7,6 +7,7 @@ import           Control.Concurrent             ( MVar
                                                 , modifyMVar_
                                                 , newMVar
                                                 , readMVar
+                                                , myThreadId
                                                 )
 import           Control.Exception              ( finally )
 import           Control.Monad                  ( forM_
@@ -75,6 +76,8 @@ staticApp = Static.staticApp $ Static.embeddedSettings $(embedDir "static")
 
 application :: MVar ServerState -> WS.ServerApp
 application state pending = do
+    -- myThreadId >>= putStrLn . ("GHC thread " <>) . show
+
     conn <- WS.acceptRequest pending
     WS.forkPingThread conn 30
     msg     <- WS.receiveData conn
