@@ -26,6 +26,7 @@ import qualified Data.Text                     as T
 import qualified Data.Text.IO                  as T
 
 import           Data.FileEmbed                 ( embedDir )
+import           Network.HTTP.Types             ( status400 )
 import qualified Network.Wai
 import qualified Network.Wai.Application.Static
                                                as Static
@@ -58,28 +59,31 @@ removeClient client = filter ((/= fst client) . fst)
 
 broadcast :: Text -> ServerState -> IO ()
 broadcast message clients = do
-    T.putStrLn message
+    -- T.putStrLn message
     forM_ clients $ \(_, conn) -> WS.sendTextData conn message
 
 
 main :: IO ()
 main = do
-    putStrLn "http://localhost:9160/index.html"
+    -- putStrLn "http://localhost:9160/index.html"
     state <- newMVar newServerState
     Warp.runSettings (Warp.setPort 9160 Warp.defaultSettings)
         $ WaiWS.websocketsOr WS.defaultConnectionOptions
                              (application state)
-                             staticApp
+                             httpApp
+
+httpApp :: Network.Wai.Application
+httpApp _ respond = respond $ Network.Wai.responseLBS status400 [] "Not a websocket request"
 
 staticApp :: Network.Wai.Application
 staticApp = Static.staticApp $ Static.embeddedSettings $(embedDir "static")
 
 application :: MVar ServerState -> WS.ServerApp
 application state pending = do
-    -- myThreadId >>= putStrLn . ("GHC thread " <>) . show
+    myThreadId >>= putStrLn . ("GHC thread " <>) . show
 
     conn <- WS.acceptRequest pending
-    WS.forkPingThread conn 30
+    -- WS.forkPingThread conn 30
     msg     <- WS.receiveData conn
     clients <- readMVar state
     case msg of

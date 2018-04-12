@@ -1,7 +1,7 @@
 # HQ
 
 * Test with https://github.com/olshevskiy87/simple-websocket-client
-
+* before running jmeter -t text.jmx...  export JVM_ARGS="-Xms4096m -Xmx4096m"
 
 Infos
 =====

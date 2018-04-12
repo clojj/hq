@@ -51,10 +51,10 @@
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Schleifen-Controller (Loop Controller)" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <intProp name="LoopController.loops">-1</intProp>
+          <stringProp name="LoopController.loops">1000</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">100</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <stringProp name="ThreadGroup.num_threads">5000</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">10</stringProp>
         <longProp name="ThreadGroup.start_time">1521704442000</longProp>
         <longProp name="ThreadGroup.end_time">1521704442000</longProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
@@ -79,6 +79,10 @@
           <stringProp name="requestData">JOIN ${__threadNum}</stringProp>
         </eu.luminis.jmeter.wssampler.RequestResponseWebSocketSampler>
         <hashTree/>
+        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
+          <stringProp name="ConstantTimer.delay">3000</stringProp>
+        </ConstantTimer>
+        <hashTree/>
         <eu.luminis.jmeter.wssampler.RequestResponseWebSocketSampler guiclass="eu.luminis.jmeter.wssampler.RequestResponseWebSocketSamplerGui" testclass="eu.luminis.jmeter.wssampler.RequestResponseWebSocketSampler" testname="WebSocket request-response Sampler" enabled="true">
           <boolProp name="createNewConnection">false</boolProp>
           <boolProp name="TLS">false</boolProp>
@@ -86,7 +90,7 @@
           <stringProp name="port">80</stringProp>
           <stringProp name="path"></stringProp>
           <boolProp name="binaryPayload">false</boolProp>
-          <stringProp name="requestData">message from ${__threadNum}</stringProp>
+          <stringProp name="requestData">JOIN ${__threadNum}</stringProp>
         </eu.luminis.jmeter.wssampler.RequestResponseWebSocketSampler>
         <hashTree/>
         <eu.luminis.jmeter.wssampler.CloseWebSocketSampler guiclass="eu.luminis.jmeter.wssampler.CloseWebSocketSamplerGui" testclass="eu.luminis.jmeter.wssampler.CloseWebSocketSampler" testname="WebSocket Close" enabled="false">
